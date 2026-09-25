@@ -6,12 +6,16 @@ import "time"
 // other table is scoped by WeddingID so a second wedding can be added later
 // without a schema change.
 type Wedding struct {
-	ID             string    `json:"id"`
-	Slug           string    `json:"slug"`
-	PartnerOneName string    `json:"partner_one_name"`
-	PartnerTwoName string    `json:"partner_two_name"`
-	WeddingDate    *string   `json:"wedding_date,omitempty"`
-	CreatedAt      time.Time `json:"created_at"`
+	ID             string  `json:"id"`
+	Slug           string  `json:"slug"`
+	PartnerOneName string  `json:"partner_one_name"`
+	PartnerTwoName string  `json:"partner_two_name"`
+	WeddingDate    *string `json:"wedding_date,omitempty"`
+	// Invitation page content, all optional.
+	OpeningText string    `json:"opening_text,omitempty"`
+	Story       string    `json:"story,omitempty"`
+	DressCode   string    `json:"dress_code,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 // Admin is an account that can log in and manage the weddings it has been
@@ -32,7 +36,19 @@ type Event struct {
 	VenueName string     `json:"venue_name,omitempty"`
 	Address   string     `json:"address,omitempty"`
 	Notes     string     `json:"notes,omitempty"`
+	MapsURL   string     `json:"maps_url,omitempty"`
 	SortOrder int        `json:"sort_order"`
+}
+
+// GiftAccount is a bank or e-wallet account guests can send a digital gift
+// to. It is shown only on the invitation page, behind an invite code.
+type GiftAccount struct {
+	ID            string `json:"id"`
+	WeddingID     string `json:"wedding_id"`
+	BankName      string `json:"bank_name"`
+	AccountName   string `json:"account_name"`
+	AccountNumber string `json:"account_number"`
+	SortOrder     int    `json:"sort_order"`
 }
 
 // RSVPStatus enumerates the allowed guest RSVP states.

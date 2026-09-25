@@ -18,7 +18,8 @@ func NewEventRepository(db *sql.DB) *EventRepository {
 func (r *EventRepository) ListByWedding(ctx context.Context, weddingID string) ([]models.Event, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, wedding_id, name, starts_at, ends_at,
-		       COALESCE(venue_name, ''), COALESCE(address, ''), COALESCE(notes, ''), sort_order
+		       COALESCE(venue_name, ''), COALESCE(address, ''), COALESCE(notes, ''),
+		       COALESCE(maps_url, ''), sort_order
 		FROM events
 		WHERE wedding_id = $1
 		ORDER BY sort_order ASC, starts_at ASC
@@ -33,7 +34,7 @@ func (r *EventRepository) ListByWedding(ctx context.Context, weddingID string) (
 		var e models.Event
 		var endsAt sql.NullTime
 		if err := rows.Scan(&e.ID, &e.WeddingID, &e.Name, &e.StartsAt, &endsAt,
-			&e.VenueName, &e.Address, &e.Notes, &e.SortOrder); err != nil {
+			&e.VenueName, &e.Address, &e.Notes, &e.MapsURL, &e.SortOrder); err != nil {
 			return nil, err
 		}
 		if endsAt.Valid {
@@ -48,10 +49,10 @@ func (r *EventRepository) ListByWedding(ctx context.Context, weddingID string) (
 func (r *EventRepository) Create(ctx context.Context, e models.Event) (string, error) {
 	var id string
 	err := r.db.QueryRowContext(ctx, `
-		INSERT INTO events (wedding_id, name, starts_at, ends_at, venue_name, address, notes, sort_order)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO events (wedding_id, name, starts_at, ends_at, venue_name, address, notes, maps_url, sort_order)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NULLIF($8, ''), $9)
 		RETURNING id
-	`, e.WeddingID, e.Name, e.StartsAt, e.EndsAt, e.VenueName, e.Address, e.Notes, e.SortOrder).Scan(&id)
+	`, e.WeddingID, e.Name, e.StartsAt, e.EndsAt, e.VenueName, e.Address, e.Notes, e.MapsURL, e.SortOrder).Scan(&id)
 	return id, err
 }
 

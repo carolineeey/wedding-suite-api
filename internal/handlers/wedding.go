@@ -29,6 +29,9 @@ type weddingRequest struct {
 	PartnerOneName string `json:"partner_one_name"`
 	PartnerTwoName string `json:"partner_two_name"`
 	WeddingDate    string `json:"wedding_date"` // "2027-06-12", optional
+	OpeningText    string `json:"opening_text"`
+	Story          string `json:"story"`
+	DressCode      string `json:"dress_code"`
 }
 
 func (req weddingRequest) input() usecase.WeddingInput {
@@ -37,6 +40,9 @@ func (req weddingRequest) input() usecase.WeddingInput {
 		PartnerOneName: req.PartnerOneName,
 		PartnerTwoName: req.PartnerTwoName,
 		WeddingDate:    req.WeddingDate,
+		OpeningText:    req.OpeningText,
+		Story:          req.Story,
+		DressCode:      req.DressCode,
 	}
 }
 

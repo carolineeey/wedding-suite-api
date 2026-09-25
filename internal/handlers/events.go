@@ -13,6 +13,7 @@ type createEventRequest struct {
 	VenueName string `json:"venue_name,omitempty"`
 	Address   string `json:"address,omitempty"`
 	Notes     string `json:"notes,omitempty"`
+	MapsURL   string `json:"maps_url,omitempty"`
 	SortOrder int    `json:"sort_order,omitempty"`
 }
 
@@ -36,6 +37,7 @@ func CreateEvent(scope *usecase.WeddingScope, events *usecase.EventUsecase) http
 			VenueName: req.VenueName,
 			Address:   req.Address,
 			Notes:     req.Notes,
+			MapsURL:   req.MapsURL,
 			SortOrder: req.SortOrder,
 		})
 		if err != nil {

@@ -7,6 +7,20 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// GetInvitation returns everything the invitation page shows the guest the
+// code belongs to: the guest, their wedding, its schedule, and gift
+// accounts. Public, rate limited like the other invite-code lookups.
+func GetInvitation(invitations *usecase.InvitationUsecase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		inv, err := invitations.Get(r.Context(), mux.Vars(r)["code"])
+		if err != nil {
+			writeUsecaseError(w, err, "invite code not found", "failed to load invitation")
+			return
+		}
+		writeJSON(w, http.StatusOK, inv)
+	}
+}
+
 // GetGuestByCode looks up a guest by their invite code. This is what the
 // wedding website calls to greet the guest by name and pre-fill their RSVP
 // form (e.g. /rsvp/AB12CDE on the frontend).

@@ -18,6 +18,8 @@ var (
 	_ GuestStore   = (*fakeGuests)(nil)
 	_ RSVPStore    = (*fakeRSVPStore)(nil)
 	_ WishStore    = (*fakeWishes)(nil)
+	_ GiftStore    = (*fakeGifts)(nil)
+	_ WeddingByID  = (*fakeWeddings)(nil)
 
 	_ AdminStore         = (*fakeAdmins)(nil)
 	_ WeddingAccessStore = (*fakeWeddings)(nil)
@@ -55,6 +57,13 @@ func (f *fakeWeddings) SlugTaken(_ context.Context, slug, excludeID string) (boo
 
 func (f *fakeWeddings) BySlug(_ context.Context, slug string) (models.Wedding, error) {
 	if f.wedding == nil || f.wedding.Slug != slug {
+		return models.Wedding{}, models.ErrNotFound
+	}
+	return *f.wedding, nil
+}
+
+func (f *fakeWeddings) ByID(_ context.Context, id string) (models.Wedding, error) {
+	if f.wedding == nil || f.wedding.ID != id {
 		return models.Wedding{}, models.ErrNotFound
 	}
 	return *f.wedding, nil
@@ -312,6 +321,25 @@ func (f *fakeWishes) SetApproval(_ context.Context, weddingID, id string, _ bool
 }
 
 func (f *fakeWishes) Delete(_ context.Context, weddingID, id string) error {
+	f.deleted = append(f.deleted, scopedID{weddingID, id})
+	return nil
+}
+
+type fakeGifts struct {
+	created []models.GiftAccount
+	deleted []scopedID
+}
+
+func (f *fakeGifts) ListByWedding(context.Context, string) ([]models.GiftAccount, error) {
+	return f.created, nil
+}
+
+func (f *fakeGifts) Create(_ context.Context, g models.GiftAccount) (string, error) {
+	f.created = append(f.created, g)
+	return fmt.Sprintf("gift-%d", len(f.created)), nil
+}
+
+func (f *fakeGifts) Delete(_ context.Context, weddingID, id string) error {
 	f.deleted = append(f.deleted, scopedID{weddingID, id})
 	return nil
 }
