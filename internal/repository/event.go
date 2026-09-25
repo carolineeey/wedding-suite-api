@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -25,7 +26,7 @@ func (r *EventRepository) ListByWedding(ctx context.Context, weddingID string) (
 		ORDER BY sort_order ASC, starts_at ASC
 	`, weddingID)
 	if err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -35,14 +36,14 @@ func (r *EventRepository) ListByWedding(ctx context.Context, weddingID string) (
 		var endsAt sql.NullTime
 		if err := rows.Scan(&e.ID, &e.WeddingID, &e.Name, &e.StartsAt, &endsAt,
 			&e.VenueName, &e.Address, &e.Notes, &e.MapsURL, &e.SortOrder); err != nil {
-			return nil, err
+			return nil, errtrace.Wrap(err)
 		}
 		if endsAt.Valid {
 			e.EndsAt = &endsAt.Time
 		}
 		events = append(events, e)
 	}
-	return events, rows.Err()
+	return events, errtrace.Wrap(rows.Err())
 }
 
 // Create inserts an event and returns its generated ID.
@@ -53,7 +54,7 @@ func (r *EventRepository) Create(ctx context.Context, e models.Event) (string, e
 		VALUES ($1, $2, $3, $4, $5, $6, $7, NULLIF($8, ''), $9)
 		RETURNING id
 	`, e.WeddingID, e.Name, e.StartsAt, e.EndsAt, e.VenueName, e.Address, e.Notes, e.MapsURL, e.SortOrder).Scan(&id)
-	return id, err
+	return id, errtrace.Wrap(err)
 }
 
 // Delete removes an event. The wedding_id predicate keeps the delete inside

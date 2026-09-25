@@ -13,7 +13,7 @@ func GetWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		wedding, events, err := weddings.Get(r.Context(), mux.Vars(r)["slug"])
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to load wedding")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to load wedding")
 			return
 		}
 
@@ -62,7 +62,7 @@ func CreateWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 
 		wedding, err := weddings.Create(r.Context(), admin.ID, req.input())
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to create wedding")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to create wedding")
 			return
 		}
 		writeJSON(w, http.StatusCreated, wedding)
@@ -80,7 +80,7 @@ func UpdateWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 
 		wedding, err := weddings.Update(r.Context(), mux.Vars(r)["slug"], req.input())
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to save wedding")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to save wedding")
 			return
 		}
 		writeJSON(w, http.StatusOK, wedding)

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -18,11 +19,11 @@ type rowScanner interface {
 // models.ErrNotFound.
 func requireAffected(res sql.Result, err error) error {
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 	n, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 	if n == 0 {
 		return models.ErrNotFound

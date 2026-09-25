@@ -41,7 +41,7 @@ func CreateEvent(scope *usecase.WeddingScope, events *usecase.EventUsecase) http
 			SortOrder: req.SortOrder,
 		})
 		if err != nil {
-			writeUsecaseError(w, err, "event not found", "failed to create event")
+			writeUsecaseError(w, r, err, "event not found", "failed to create event")
 			return
 		}
 
@@ -61,7 +61,7 @@ func DeleteEvent(scope *usecase.WeddingScope, events *usecase.EventUsecase) http
 			return
 		}
 		if err := events.Delete(r.Context(), wedding, id); err != nil {
-			writeUsecaseError(w, err, "event not found", "failed to delete event")
+			writeUsecaseError(w, r, err, "event not found", "failed to delete event")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})

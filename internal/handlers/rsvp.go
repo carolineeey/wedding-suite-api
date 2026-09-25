@@ -14,7 +14,7 @@ func GetInvitation(invitations *usecase.InvitationUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		inv, err := invitations.Get(r.Context(), mux.Vars(r)["code"])
 		if err != nil {
-			writeUsecaseError(w, err, "invite code not found", "failed to load invitation")
+			writeUsecaseError(w, r, err, "invite code not found", "failed to load invitation")
 			return
 		}
 		writeJSON(w, http.StatusOK, inv)
@@ -28,7 +28,7 @@ func GetGuestByCode(rsvp *usecase.RSVPUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		guest, err := rsvp.GuestByInviteCode(r.Context(), mux.Vars(r)["code"])
 		if err != nil {
-			writeUsecaseError(w, err, "invite code not found", "failed to load guest")
+			writeUsecaseError(w, r, err, "invite code not found", "failed to load guest")
 			return
 		}
 		writeJSON(w, http.StatusOK, guest)
@@ -55,7 +55,7 @@ func SubmitRSVP(rsvp *usecase.RSVPUsecase) http.HandlerFunc {
 			Message:        req.Message,
 		})
 		if err != nil {
-			writeUsecaseError(w, err, "invite code not found", "failed to save RSVP")
+			writeUsecaseError(w, r, err, "invite code not found", "failed to save RSVP")
 			return
 		}
 

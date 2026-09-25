@@ -16,7 +16,7 @@ func ListGifts(scope *usecase.WeddingScope, gifts *usecase.GiftUsecase) http.Han
 		}
 		list, err := gifts.List(r.Context(), wedding)
 		if err != nil {
-			writeUsecaseError(w, err, "gift account not found", "failed to load gift accounts")
+			writeUsecaseError(w, r, err, "gift account not found", "failed to load gift accounts")
 			return
 		}
 		writeJSON(w, http.StatusOK, list)
@@ -49,7 +49,7 @@ func CreateGift(scope *usecase.WeddingScope, gifts *usecase.GiftUsecase) http.Ha
 			SortOrder:     req.SortOrder,
 		})
 		if err != nil {
-			writeUsecaseError(w, err, "gift account not found", "failed to create gift account")
+			writeUsecaseError(w, r, err, "gift account not found", "failed to create gift account")
 			return
 		}
 		writeJSON(w, http.StatusCreated, map[string]string{"id": id})
@@ -68,7 +68,7 @@ func DeleteGift(scope *usecase.WeddingScope, gifts *usecase.GiftUsecase) http.Ha
 			return
 		}
 		if err := gifts.Delete(r.Context(), wedding, id); err != nil {
-			writeUsecaseError(w, err, "gift account not found", "failed to delete gift account")
+			writeUsecaseError(w, r, err, "gift account not found", "failed to delete gift account")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})

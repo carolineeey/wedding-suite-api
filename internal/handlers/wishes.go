@@ -21,7 +21,7 @@ func ListWishes(scope *usecase.WeddingScope, wishes *usecase.WishUsecase, includ
 		}
 		list, err := wishes.List(r.Context(), wedding, includeUnapproved, limit)
 		if err != nil {
-			writeUsecaseError(w, err, "wish not found", "failed to load wishes")
+			writeUsecaseError(w, r, err, "wish not found", "failed to load wishes")
 			return
 		}
 		writeJSON(w, http.StatusOK, list)
@@ -50,7 +50,7 @@ func CreateWish(scope *usecase.WeddingScope, wishes *usecase.WishUsecase) http.H
 			Message:   req.Message,
 		})
 		if err != nil {
-			writeUsecaseError(w, err, "wish not found", "failed to save wish")
+			writeUsecaseError(w, r, err, "wish not found", "failed to save wish")
 			return
 		}
 
@@ -79,7 +79,7 @@ func SetWishApproval(scope *usecase.WeddingScope, wishes *usecase.WishUsecase) h
 		}
 
 		if err := wishes.SetApproval(r.Context(), wedding, id, req.IsApproved); err != nil {
-			writeUsecaseError(w, err, "wish not found", "failed to update wish")
+			writeUsecaseError(w, r, err, "wish not found", "failed to update wish")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "updated"})
@@ -98,7 +98,7 @@ func DeleteWish(scope *usecase.WeddingScope, wishes *usecase.WishUsecase) http.H
 			return
 		}
 		if err := wishes.Delete(r.Context(), wedding, id); err != nil {
-			writeUsecaseError(w, err, "wish not found", "failed to delete wish")
+			writeUsecaseError(w, r, err, "wish not found", "failed to delete wish")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})

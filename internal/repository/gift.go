@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -23,7 +24,7 @@ func (r *GiftRepository) ListByWedding(ctx context.Context, weddingID string) ([
 		ORDER BY sort_order ASC, created_at ASC
 	`, weddingID)
 	if err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -32,11 +33,11 @@ func (r *GiftRepository) ListByWedding(ctx context.Context, weddingID string) ([
 		var g models.GiftAccount
 		if err := rows.Scan(&g.ID, &g.WeddingID, &g.BankName, &g.AccountName,
 			&g.AccountNumber, &g.SortOrder); err != nil {
-			return nil, err
+			return nil, errtrace.Wrap(err)
 		}
 		gifts = append(gifts, g)
 	}
-	return gifts, rows.Err()
+	return gifts, errtrace.Wrap(rows.Err())
 }
 
 // Create inserts a gift account and returns its generated ID.
@@ -47,7 +48,7 @@ func (r *GiftRepository) Create(ctx context.Context, g models.GiftAccount) (stri
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
 	`, g.WeddingID, g.BankName, g.AccountName, g.AccountNumber, g.SortOrder).Scan(&id)
-	return id, err
+	return id, errtrace.Wrap(err)
 }
 
 // Delete removes a gift account, scoped to the caller's wedding like

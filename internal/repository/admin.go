@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -27,7 +28,7 @@ func (r *AdminRepository) Create(ctx context.Context, email, passwordHash string
 	if isUniqueViolation(err) {
 		return "", models.ErrDuplicate
 	}
-	return id, err
+	return id, errtrace.Wrap(err)
 }
 
 // ByEmail returns the admin with this (already lowercased) email and its
@@ -43,7 +44,7 @@ func (r *AdminRepository) ByEmail(ctx context.Context, email string) (models.Adm
 	if errors.Is(err, sql.ErrNoRows) {
 		return a, "", models.ErrNotFound
 	}
-	return a, hash, err
+	return a, hash, errtrace.Wrap(err)
 }
 
 func (r *AdminRepository) SetPassword(ctx context.Context, adminID, passwordHash string) error {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -47,7 +48,7 @@ func (r *WeddingRepository) BySlug(ctx context.Context, slug string) (models.Wed
 	if errors.Is(err, sql.ErrNoRows) {
 		return w, models.ErrNotFound
 	}
-	return w, err
+	return w, errtrace.Wrap(err)
 }
 
 // ByID fetches a wedding by its ID. The invitation page uses it: a guest's
@@ -61,7 +62,7 @@ func (r *WeddingRepository) ByID(ctx context.Context, id string) (models.Wedding
 	if errors.Is(err, sql.ErrNoRows) {
 		return w, models.ErrNotFound
 	}
-	return w, err
+	return w, errtrace.Wrap(err)
 }
 
 // SlugTaken reports whether a wedding other than excludeID already uses this
@@ -72,7 +73,7 @@ func (r *WeddingRepository) SlugTaken(ctx context.Context, slug, excludeID strin
 	err := r.db.QueryRowContext(ctx, `
 		SELECT EXISTS (SELECT 1 FROM weddings WHERE slug = $1 AND id::text <> $2)
 	`, slug, excludeID).Scan(&taken)
-	return taken, err
+	return taken, errtrace.Wrap(err)
 }
 
 // Create inserts the wedding and grants ownerID access to it in one
@@ -81,7 +82,7 @@ func (r *WeddingRepository) SlugTaken(ctx context.Context, slug, excludeID strin
 func (r *WeddingRepository) Create(ctx context.Context, w models.Wedding, ownerID string) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 	defer tx.Rollback()
 
@@ -97,14 +98,14 @@ func (r *WeddingRepository) Create(ctx context.Context, w models.Wedding, ownerI
 		return models.ErrDuplicate
 	}
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO wedding_admins (wedding_id, admin_id) VALUES ($1, $2)
 	`, id, ownerID); err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
-	return tx.Commit()
+	return errtrace.Wrap(tx.Commit())
 }
 
 // Update saves the wedding. Renaming it onto a slug another wedding holds is
@@ -129,7 +130,7 @@ func (r *WeddingRepository) GrantAdmin(ctx context.Context, weddingID, adminID s
 		INSERT INTO wedding_admins (wedding_id, admin_id) VALUES ($1, $2)
 		ON CONFLICT DO NOTHING
 	`, weddingID, adminID)
-	return err
+	return errtrace.Wrap(err)
 }
 
 // HasAdmin reports whether the admin may manage the wedding.
@@ -138,7 +139,7 @@ func (r *WeddingRepository) HasAdmin(ctx context.Context, weddingID, adminID str
 	err := r.db.QueryRowContext(ctx, `
 		SELECT EXISTS (SELECT 1 FROM wedding_admins WHERE wedding_id = $1 AND admin_id = $2)
 	`, weddingID, adminID).Scan(&ok)
-	return ok, err
+	return ok, errtrace.Wrap(err)
 }
 
 // ListByAdmin returns the weddings the admin may manage, soonest first.
@@ -151,7 +152,7 @@ func (r *WeddingRepository) ListByAdmin(ctx context.Context, adminID string) ([]
 		ORDER BY w.wedding_date NULLS LAST, w.created_at
 	`, adminID)
 	if err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -159,9 +160,9 @@ func (r *WeddingRepository) ListByAdmin(ctx context.Context, adminID string) ([]
 	for rows.Next() {
 		w, err := scanWedding(rows)
 		if err != nil {
-			return nil, err
+			return nil, errtrace.Wrap(err)
 		}
 		weddings = append(weddings, w)
 	}
-	return weddings, rows.Err()
+	return weddings, errtrace.Wrap(rows.Err())
 }

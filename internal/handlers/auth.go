@@ -24,7 +24,7 @@ func Login(auth *usecase.AuthUsecase) http.HandlerFunc {
 
 		session, err := auth.Login(r.Context(), req.Email, req.Password)
 		if err != nil {
-			writeUsecaseError(w, err, "admin not found", "failed to log in")
+			writeUsecaseError(w, r, err, "admin not found", "failed to log in")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{
@@ -40,7 +40,7 @@ func Login(auth *usecase.AuthUsecase) http.HandlerFunc {
 func Logout(auth *usecase.AuthUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := auth.Logout(r.Context(), middleware.BearerToken(r)); err != nil {
-			writeUsecaseError(w, err, "session not found", "failed to log out")
+			writeUsecaseError(w, r, err, "session not found", "failed to log out")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "logged_out"})
@@ -57,7 +57,7 @@ func Me(auth *usecase.AuthUsecase) http.HandlerFunc {
 		}
 		weddings, err := auth.Weddings(r.Context(), admin.ID)
 		if err != nil {
-			writeUsecaseError(w, err, "admin not found", "failed to load weddings")
+			writeUsecaseError(w, r, err, "admin not found", "failed to load weddings")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{
