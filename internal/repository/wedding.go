@@ -22,13 +22,13 @@ func NewWeddingRepository(db *sql.DB) *WeddingRepository {
 // would serialize as "2027-06-12T00:00:00Z" and render as the previous day in
 // browsers west of UTC.
 const weddingColumns = `w.id, w.slug, w.partner_one_name, w.partner_two_name, w.wedding_date::text,
-	COALESCE(w.opening_text, ''), COALESCE(w.story, ''), COALESCE(w.dress_code, ''), w.created_at`
+	COALESCE(w.opening_text, ''), COALESCE(w.story, ''), COALESCE(w.dress_code, ''), w.template_id, w.created_at`
 
 func scanWedding(row rowScanner) (models.Wedding, error) {
 	var w models.Wedding
 	var weddingDate sql.NullString
 	if err := row.Scan(&w.ID, &w.Slug, &w.PartnerOneName, &w.PartnerTwoName, &weddingDate,
-		&w.OpeningText, &w.Story, &w.DressCode, &w.CreatedAt); err != nil {
+		&w.OpeningText, &w.Story, &w.DressCode, &w.TemplateID, &w.CreatedAt); err != nil {
 		return w, err
 	}
 	if weddingDate.Valid {
@@ -89,11 +89,11 @@ func (r *WeddingRepository) Create(ctx context.Context, w models.Wedding, ownerI
 	var id string
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO weddings (slug, partner_one_name, partner_two_name, wedding_date,
-		                      opening_text, story, dress_code)
-		VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''), NULLIF($7, ''))
+		                      opening_text, story, dress_code, template_id)
+		VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''), NULLIF($7, ''), $8)
 		RETURNING id
 	`, w.Slug, w.PartnerOneName, w.PartnerTwoName, w.WeddingDate,
-		w.OpeningText, w.Story, w.DressCode).Scan(&id)
+		w.OpeningText, w.Story, w.DressCode, w.TemplateID).Scan(&id)
 	if isUniqueViolation(err) {
 		return models.ErrDuplicate
 	}
@@ -114,10 +114,10 @@ func (r *WeddingRepository) Update(ctx context.Context, w models.Wedding) error 
 	res, err := r.db.ExecContext(ctx, `
 		UPDATE weddings
 		SET slug = $1, partner_one_name = $2, partner_two_name = $3, wedding_date = $4,
-		    opening_text = NULLIF($5, ''), story = NULLIF($6, ''), dress_code = NULLIF($7, '')
-		WHERE id = $8
+		    opening_text = NULLIF($5, ''), story = NULLIF($6, ''), dress_code = NULLIF($7, ''), template_id = $8
+		WHERE id = $9
 	`, w.Slug, w.PartnerOneName, w.PartnerTwoName, w.WeddingDate,
-		w.OpeningText, w.Story, w.DressCode, w.ID)
+		w.OpeningText, w.Story, w.DressCode, w.TemplateID, w.ID)
 	if isUniqueViolation(err) {
 		return models.ErrDuplicate
 	}

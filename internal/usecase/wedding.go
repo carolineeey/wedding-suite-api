@@ -59,6 +59,8 @@ type WeddingInput struct {
 	OpeningText string
 	Story       string
 	DressCode   string
+	// Nil preserves the current template on update and uses the default on create.
+	TemplateID *string
 }
 
 // validate normalizes the slug and checks every field, returning the wedding
@@ -83,6 +85,15 @@ func (in WeddingInput) validate() (models.Wedding, error) {
 	if tooLong(in.DressCode, maxShortTextChars) {
 		return models.Wedding{}, invalid("dress_code must be at most %d characters", maxShortTextChars)
 	}
+	templateID := "ulos-heritage"
+	if in.TemplateID != nil {
+		templateID = *in.TemplateID
+	}
+	switch templateID {
+	case "ulos-heritage", "botanical":
+	default:
+		return models.Wedding{}, invalid("template_id is not an available template")
+	}
 	wedding := models.Wedding{
 		Slug:           slug,
 		PartnerOneName: in.PartnerOneName,
@@ -90,6 +101,7 @@ func (in WeddingInput) validate() (models.Wedding, error) {
 		OpeningText:    in.OpeningText,
 		Story:          in.Story,
 		DressCode:      in.DressCode,
+		TemplateID:     templateID,
 	}
 	if in.WeddingDate != "" {
 		if _, err := time.Parse("2006-01-02", in.WeddingDate); err != nil {
@@ -128,6 +140,9 @@ func (u *WeddingUsecase) Update(ctx context.Context, slug string, in WeddingInpu
 	existing, err := u.weddings.BySlug(ctx, normalizeSlug(slug))
 	if err != nil {
 		return models.Wedding{}, err
+	}
+	if in.TemplateID == nil && existing.TemplateID != "" {
+		in.TemplateID = &existing.TemplateID
 	}
 	wedding, err := in.validate()
 	if err != nil {

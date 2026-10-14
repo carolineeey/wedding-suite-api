@@ -15,6 +15,7 @@ type Wedding struct {
 	OpeningText string    `json:"opening_text,omitempty"`
 	Story       string    `json:"story,omitempty"`
 	DressCode   string    `json:"dress_code,omitempty"`
+	TemplateID  string    `json:"template_id"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 

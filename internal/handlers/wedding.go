@@ -25,13 +25,14 @@ func GetWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 }
 
 type weddingRequest struct {
-	Slug           string `json:"slug"`
-	PartnerOneName string `json:"partner_one_name"`
-	PartnerTwoName string `json:"partner_two_name"`
-	WeddingDate    string `json:"wedding_date"` // "2027-06-12", optional
-	OpeningText    string `json:"opening_text"`
-	Story          string `json:"story"`
-	DressCode      string `json:"dress_code"`
+	Slug           string  `json:"slug"`
+	PartnerOneName string  `json:"partner_one_name"`
+	PartnerTwoName string  `json:"partner_two_name"`
+	WeddingDate    string  `json:"wedding_date"` // "2027-06-12", optional
+	OpeningText    string  `json:"opening_text"`
+	Story          string  `json:"story"`
+	DressCode      string  `json:"dress_code"`
+	TemplateID     *string `json:"template_id"`
 }
 
 func (req weddingRequest) input() usecase.WeddingInput {
@@ -43,6 +44,7 @@ func (req weddingRequest) input() usecase.WeddingInput {
 		OpeningText:    req.OpeningText,
 		Story:          req.Story,
 		DressCode:      req.DressCode,
+		TemplateID:     req.TemplateID,
 	}
 }
 
