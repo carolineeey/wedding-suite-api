@@ -16,7 +16,7 @@ func ListGuests(scope *usecase.WeddingScope, guests *usecase.GuestUsecase) http.
 		}
 		list, err := guests.List(r.Context(), wedding)
 		if err != nil {
-			writeUsecaseError(w, err, "guest not found", "failed to load guests")
+			writeUsecaseError(w, r, err, "guest not found", "failed to load guests")
 			return
 		}
 		writeJSON(w, http.StatusOK, list)
@@ -48,7 +48,7 @@ func CreateGuest(scope *usecase.WeddingScope, guests *usecase.GuestUsecase) http
 
 		guest, err := guests.Create(r.Context(), wedding, req.input())
 		if err != nil {
-			writeUsecaseError(w, err, "guest not found", "failed to create guest")
+			writeUsecaseError(w, r, err, "guest not found", "failed to create guest")
 			return
 		}
 
@@ -74,7 +74,7 @@ func UpdateGuest(scope *usecase.WeddingScope, guests *usecase.GuestUsecase) http
 		}
 
 		if err := guests.Update(r.Context(), wedding, id, req.input()); err != nil {
-			writeUsecaseError(w, err, "guest not found", "failed to update guest")
+			writeUsecaseError(w, r, err, "guest not found", "failed to update guest")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "updated"})
@@ -93,7 +93,7 @@ func DeleteGuest(scope *usecase.WeddingScope, guests *usecase.GuestUsecase) http
 			return
 		}
 		if err := guests.Delete(r.Context(), wedding, id); err != nil {
-			writeUsecaseError(w, err, "guest not found", "failed to delete guest")
+			writeUsecaseError(w, r, err, "guest not found", "failed to delete guest")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
@@ -109,7 +109,7 @@ func GetRSVPSummary(scope *usecase.WeddingScope, guests *usecase.GuestUsecase) h
 		}
 		summary, err := guests.Summary(r.Context(), wedding)
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to compute summary")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to compute summary")
 			return
 		}
 		writeJSON(w, http.StatusOK, summary)

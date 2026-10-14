@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -43,7 +44,7 @@ func (r *GuestRepository) ListByWedding(ctx context.Context, weddingID string) (
 		ORDER BY created_at ASC
 	`, weddingID)
 	if err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -51,11 +52,11 @@ func (r *GuestRepository) ListByWedding(ctx context.Context, weddingID string) (
 	for rows.Next() {
 		g, err := scanGuest(rows)
 		if err != nil {
-			return nil, err
+			return nil, errtrace.Wrap(err)
 		}
 		guests = append(guests, g)
 	}
-	return guests, rows.Err()
+	return guests, errtrace.Wrap(rows.Err())
 }
 
 func (r *GuestRepository) GetByInviteCode(ctx context.Context, code string) (models.Guest, error) {
@@ -67,7 +68,7 @@ func (r *GuestRepository) GetByInviteCode(ctx context.Context, code string) (mod
 	if errors.Is(err, sql.ErrNoRows) {
 		return g, models.ErrNotFound
 	}
-	return g, err
+	return g, errtrace.Wrap(err)
 }
 
 // Create inserts a guest and returns its generated ID. It returns
@@ -82,7 +83,7 @@ func (r *GuestRepository) Create(ctx context.Context, g models.Guest) (string, e
 	if isUniqueViolation(err) {
 		return "", models.ErrDuplicate
 	}
-	return id, err
+	return id, errtrace.Wrap(err)
 }
 
 // Update saves a guest's name, group, and allowance. The wedding_id
@@ -131,5 +132,5 @@ func (r *GuestRepository) Summary(ctx context.Context, weddingID string) (models
 		&s.AttendingPeople,
 		&s.Declined,
 	)
-	return s, err
+	return s, errtrace.Wrap(err)
 }

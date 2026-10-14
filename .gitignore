@@ -1,0 +1,25 @@
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+.junie/
+
+# OS
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build output
+/bin/
+/api
+/admin
+*.exe
+*.test
+*.out
+
+# Go coverage / profiling
+coverage.*
+*.prof

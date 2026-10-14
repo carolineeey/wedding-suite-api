@@ -14,7 +14,7 @@ import (
 func weddingID(w http.ResponseWriter, r *http.Request, scope *usecase.WeddingScope, internalMsg string) (string, bool) {
 	id, err := scope.BySlug(r.Context(), mux.Vars(r)["slug"])
 	if err != nil {
-		writeUsecaseError(w, err, "wedding not found", internalMsg)
+		writeUsecaseError(w, r, err, "wedding not found", internalMsg)
 		return "", false
 	}
 	return id, true

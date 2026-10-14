@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -23,7 +24,7 @@ func (r *SessionRepository) Create(ctx context.Context, tokenHash, adminID strin
 	_, err := r.db.ExecContext(ctx, `
 		INSERT INTO admin_sessions (token_hash, admin_id, expires_at) VALUES ($1, $2, $3)
 	`, tokenHash, adminID, expiresAt)
-	return err
+	return errtrace.Wrap(err)
 }
 
 // AdminByToken returns the admin whose session has this token hash and is
@@ -40,7 +41,7 @@ func (r *SessionRepository) AdminByToken(ctx context.Context, tokenHash string, 
 	if errors.Is(err, sql.ErrNoRows) {
 		return a, models.ErrNotFound
 	}
-	return a, err
+	return a, errtrace.Wrap(err)
 }
 
 func (r *SessionRepository) Delete(ctx context.Context, tokenHash string) error {
@@ -53,12 +54,12 @@ func (r *SessionRepository) DeleteForAdmin(ctx context.Context, adminID string) 
 	_, err := r.db.ExecContext(ctx, `
 		DELETE FROM admin_sessions WHERE admin_id = $1
 	`, adminID)
-	return err
+	return errtrace.Wrap(err)
 }
 
 func (r *SessionRepository) DeleteExpired(ctx context.Context, adminID string, now time.Time) error {
 	_, err := r.db.ExecContext(ctx, `
 		DELETE FROM admin_sessions WHERE admin_id = $1 AND expires_at <= $2
 	`, adminID, now)
-	return err
+	return errtrace.Wrap(err)
 }

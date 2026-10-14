@@ -86,6 +86,7 @@ func buildRouter(conn *sql.DB, cfg config.Config) *mux.Router {
 	wishRepo := repository.NewWishRepository(conn)
 	adminRepo := repository.NewAdminRepository(conn)
 	sessionRepo := repository.NewSessionRepository(conn)
+	giftRepo := repository.NewGiftRepository(conn)
 
 	// scope turns the {slug} in a route into the wedding ID the usecases
 	// work from. It is the only lookup from address to wedding.
@@ -97,6 +98,13 @@ func buildRouter(conn *sql.DB, cfg config.Config) *mux.Router {
 	rsvp := usecase.NewRSVPUsecase(guestRepo)
 	wishes := usecase.NewWishUsecase(wishRepo, cfg.WishesRequireApproval)
 	auth := usecase.NewAuthUsecase(adminRepo, weddingRepo, sessionRepo, scope)
+	gifts := usecase.NewGiftUsecase(giftRepo)
+	invitations := usecase.NewInvitationUsecase(usecase.InvitationStores{
+		Guests:   guestRepo,
+		Weddings: weddingRepo,
+		Events:   eventRepo,
+		Gifts:    giftRepo,
+	})
 
 	r := mux.NewRouter()
 	r.StrictSlash(false)
@@ -122,6 +130,7 @@ func buildRouter(conn *sql.DB, cfg config.Config) *mux.Router {
 	pub.HandleFunc("/wishes", handlers.ListWishes(scope, wishes, false)).Methods(http.MethodGet)
 	pub.Handle("/wishes", writeLimit(handlers.CreateWish(scope, wishes))).Methods(http.MethodPost)
 
+	api.Handle("/invitations/{code}", lookupLimit(handlers.GetInvitation(invitations))).Methods(http.MethodGet)
 	api.Handle("/guests/{code}", lookupLimit(handlers.GetGuestByCode(rsvp))).Methods(http.MethodGet)
 	api.Handle("/guests/{code}/rsvp", writeLimit(handlers.SubmitRSVP(rsvp))).Methods(http.MethodPost)
 
@@ -144,6 +153,9 @@ func buildRouter(conn *sql.DB, cfg config.Config) *mux.Router {
 	adminW.HandleFunc("/wedding", handlers.UpdateWedding(weddings)).Methods(http.MethodPut)
 	adminW.HandleFunc("/events", handlers.CreateEvent(scope, events)).Methods(http.MethodPost)
 	adminW.HandleFunc("/events/{id}", handlers.DeleteEvent(scope, events)).Methods(http.MethodDelete)
+	adminW.HandleFunc("/gifts", handlers.ListGifts(scope, gifts)).Methods(http.MethodGet)
+	adminW.HandleFunc("/gifts", handlers.CreateGift(scope, gifts)).Methods(http.MethodPost)
+	adminW.HandleFunc("/gifts/{id}", handlers.DeleteGift(scope, gifts)).Methods(http.MethodDelete)
 	adminW.HandleFunc("/guests", handlers.ListGuests(scope, guests)).Methods(http.MethodGet)
 	adminW.HandleFunc("/guests", handlers.CreateGuest(scope, guests)).Methods(http.MethodPost)
 	adminW.HandleFunc("/guests/{id}", handlers.UpdateGuest(scope, guests)).Methods(http.MethodPut)

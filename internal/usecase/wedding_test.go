@@ -241,3 +241,24 @@ func TestWeddingScopeBySlug(t *testing.T) {
 		t.Errorf("unknown slug: err = %v, want ErrNotFound", err)
 	}
 }
+
+func TestWeddingInvitationContent(t *testing.T) {
+	weddings := &fakeWeddings{wedding: testWedding()}
+	in := WeddingInput{Slug: "s", PartnerOneName: "A", PartnerTwoName: "B",
+		OpeningText: "Bismillah", Story: "Kami bertemu...", DressCode: "Sage & krem"}
+
+	got, err := NewWeddingUsecase(weddings, &fakeEvents{}).Update(context.Background(), "s", in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.OpeningText != in.OpeningText || got.Story != in.Story || got.DressCode != in.DressCode {
+		t.Errorf("wedding = %+v, want the invitation content stored", got)
+	}
+
+	in.Story = strings.Repeat("x", maxStoryChars+1)
+	_, err = NewWeddingUsecase(weddings, &fakeEvents{}).Update(context.Background(), "s", in)
+	var verr *ValidationError
+	if !errors.As(err, &verr) {
+		t.Errorf("err = %v, want a ValidationError for an over-long story", err)
+	}
+}

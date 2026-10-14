@@ -17,11 +17,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Logging logs method, path, status-adjacent info, and duration for every request.
+// Logging logs method, path, status-adjacent info, and duration for every
+// request. It also keeps a copy of the request body as handlers read it, so
+// LogError can show the payload that led to a failure.
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		next.ServeHTTP(w, r)
+		body := &bodyCapture{ReadCloser: r.Body}
+		r.Body = body
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), bodyKey, body)))
 		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start))
 	})
 }
@@ -54,7 +58,10 @@ type WeddingAccess interface {
 
 type ctxKey int
 
-const adminKey ctxKey = iota
+const (
+	adminKey ctxKey = iota
+	bodyKey
+)
 
 // AdminFromContext returns the admin RequireAdmin authenticated for this
 // request.
@@ -84,7 +91,7 @@ func RequireAdmin(auth Authenticator) func(http.Handler) http.Handler {
 				return
 			}
 			if err != nil {
-				log.Printf("authenticating admin: %v", err)
+				LogError(r, "authenticating admin", err)
 				writeError(w, http.StatusInternalServerError, "failed to authenticate")
 				return
 			}
@@ -112,7 +119,7 @@ func RequireWeddingAccess(access WeddingAccess) func(http.Handler) http.Handler 
 				return
 			}
 			if err != nil {
-				log.Printf("checking wedding access: %v", err)
+				LogError(r, "checking wedding access", err)
 				writeError(w, http.StatusInternalServerError, "failed to check wedding access")
 				return
 			}

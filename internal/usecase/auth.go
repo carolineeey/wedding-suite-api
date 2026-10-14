@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -138,7 +139,7 @@ func (u *AuthUsecase) Login(ctx context.Context, email, password string) (Sessio
 	}
 	token, err := u.newToken()
 	if err != nil {
-		return Session{}, fmt.Errorf("generating session token: %w", err)
+		return Session{}, errtrace.Wrap(fmt.Errorf("generating session token: %w", err))
 	}
 	expiresAt := now.Add(sessionTTL)
 	if err := u.sessions.Create(ctx, hashToken(token), admin.ID, expiresAt); err != nil {
@@ -262,7 +263,7 @@ func (u *AuthUsecase) validHash(password string) (string, error) {
 	}
 	hash, err := u.hashPassword(password)
 	if err != nil {
-		return "", fmt.Errorf("hashing password: %w", err)
+		return "", errtrace.Wrap(fmt.Errorf("hashing password: %w", err))
 	}
 	return hash, nil
 }

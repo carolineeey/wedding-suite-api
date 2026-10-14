@@ -13,7 +13,7 @@ func GetWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		wedding, events, err := weddings.Get(r.Context(), mux.Vars(r)["slug"])
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to load wedding")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to load wedding")
 			return
 		}
 
@@ -29,6 +29,9 @@ type weddingRequest struct {
 	PartnerOneName string `json:"partner_one_name"`
 	PartnerTwoName string `json:"partner_two_name"`
 	WeddingDate    string `json:"wedding_date"` // "2027-06-12", optional
+	OpeningText    string `json:"opening_text"`
+	Story          string `json:"story"`
+	DressCode      string `json:"dress_code"`
 }
 
 func (req weddingRequest) input() usecase.WeddingInput {
@@ -37,6 +40,9 @@ func (req weddingRequest) input() usecase.WeddingInput {
 		PartnerOneName: req.PartnerOneName,
 		PartnerTwoName: req.PartnerTwoName,
 		WeddingDate:    req.WeddingDate,
+		OpeningText:    req.OpeningText,
+		Story:          req.Story,
+		DressCode:      req.DressCode,
 	}
 }
 
@@ -56,7 +62,7 @@ func CreateWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 
 		wedding, err := weddings.Create(r.Context(), admin.ID, req.input())
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to create wedding")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to create wedding")
 			return
 		}
 		writeJSON(w, http.StatusCreated, wedding)
@@ -74,7 +80,7 @@ func UpdateWedding(weddings *usecase.WeddingUsecase) http.HandlerFunc {
 
 		wedding, err := weddings.Update(r.Context(), mux.Vars(r)["slug"], req.input())
 		if err != nil {
-			writeUsecaseError(w, err, "wedding not found", "failed to save wedding")
+			writeUsecaseError(w, r, err, "wedding not found", "failed to save wedding")
 			return
 		}
 		writeJSON(w, http.StatusOK, wedding)

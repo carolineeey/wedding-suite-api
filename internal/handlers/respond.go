@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/carolineeey/wedding-suite-api/internal/middleware"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 	"github.com/carolineeey/wedding-suite-api/internal/usecase"
 )
@@ -31,10 +32,11 @@ func writeError(w http.ResponseWriter, status int, message string) {
 
 // writeUsecaseError maps an error from the usecase layer onto a response:
 // validation problems become 400s carrying their message, bad credentials
-// become 401s, missing records become 404s with notFoundMsg, and anything else is logged and becomes a
-// 500 with internalMsg, so database errors never reach the caller. An
-// unknown wedding slug arrives here as models.ErrNotFound.
-func writeUsecaseError(w http.ResponseWriter, err error, notFoundMsg, internalMsg string) {
+// become 401s, missing records become 404s with notFoundMsg, and anything
+// else is logged with the request that caused it and becomes a 500 with
+// internalMsg, so database errors never reach the caller. An unknown wedding
+// slug arrives here as models.ErrNotFound.
+func writeUsecaseError(w http.ResponseWriter, r *http.Request, err error, notFoundMsg, internalMsg string) {
 	var invalid *usecase.ValidationError
 	switch {
 	case errors.As(err, &invalid):
@@ -44,7 +46,7 @@ func writeUsecaseError(w http.ResponseWriter, err error, notFoundMsg, internalMs
 	case errors.Is(err, models.ErrNotFound):
 		writeError(w, http.StatusNotFound, notFoundMsg)
 	default:
-		log.Printf("%s: %v", internalMsg, err)
+		middleware.LogError(r, internalMsg, err)
 		writeError(w, http.StatusInternalServerError, internalMsg)
 	}
 }

@@ -124,6 +124,7 @@ with the token from `POST /api/v1/auth/login`.
 |---|---|---|
 | GET | `/health` | Liveness + DB check |
 | GET | `/api/v1/w/{slug}/wedding` | Couple info, date, and full event schedule |
+| GET | `/api/v1/invitations/{code}` | Everything the guest's invitation page shows: `{guest, wedding, events, gifts}`. Gift accounts are only served here, behind an invite code |
 | GET | `/api/v1/guests/{code}` | Look up a guest by their invite code |
 | POST | `/api/v1/guests/{code}/rsvp` | Submit an RSVP: `{attending, attending_count, message}` — `attending` is required; `message` max 1000 characters |
 | GET | `/api/v1/w/{slug}/wishes` | List approved guestbook messages (`?limit=`) |
@@ -142,9 +143,12 @@ with the token from `POST /api/v1/auth/login`.
 |---|---|---|
 | GET | `/api/v1/admin/me` | The logged-in admin and the weddings they manage |
 | POST | `/api/v1/admin/weddings` | Create a wedding; the creating admin becomes its admin. `slug` is lowercased and trimmed, and must be URL-safe (letters, numbers, single hyphens between them, max 63 characters); a slug in use returns `400` |
-| PUT | `/api/v1/admin/w/{slug}/wedding` | Edit the wedding. A different `slug` in the body renames it, which breaks links already shared with guests |
-| POST | `/api/v1/admin/w/{slug}/events` | Add a schedule item |
+| PUT | `/api/v1/admin/w/{slug}/wedding` | Edit the wedding, including the invitation text (`opening_text` max 2000, `story` max 5000, `dress_code` max 200 characters). It replaces every field, so omitted text is cleared. A different `slug` in the body renames it, which breaks links already shared with guests |
+| POST | `/api/v1/admin/w/{slug}/events` | Add a schedule item; optional `maps_url` must be an `http(s)` link |
 | DELETE | `/api/v1/admin/w/{slug}/events/{id}` | Remove a schedule item |
+| GET | `/api/v1/admin/w/{slug}/gifts` | List digital-gift accounts |
+| POST | `/api/v1/admin/w/{slug}/gifts` | Add one: `{bank_name, account_name, account_number, sort_order}` |
+| DELETE | `/api/v1/admin/w/{slug}/gifts/{id}` | Remove one |
 | GET | `/api/v1/admin/w/{slug}/guests` | List every guest + RSVP status |
 | POST | `/api/v1/admin/w/{slug}/guests` | Add a guest, returns a generated `invite_code` |
 | PUT | `/api/v1/admin/w/{slug}/guests/{id}` | Edit a guest |

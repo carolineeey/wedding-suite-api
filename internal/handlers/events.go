@@ -13,6 +13,7 @@ type createEventRequest struct {
 	VenueName string `json:"venue_name,omitempty"`
 	Address   string `json:"address,omitempty"`
 	Notes     string `json:"notes,omitempty"`
+	MapsURL   string `json:"maps_url,omitempty"`
 	SortOrder int    `json:"sort_order,omitempty"`
 }
 
@@ -36,10 +37,11 @@ func CreateEvent(scope *usecase.WeddingScope, events *usecase.EventUsecase) http
 			VenueName: req.VenueName,
 			Address:   req.Address,
 			Notes:     req.Notes,
+			MapsURL:   req.MapsURL,
 			SortOrder: req.SortOrder,
 		})
 		if err != nil {
-			writeUsecaseError(w, err, "event not found", "failed to create event")
+			writeUsecaseError(w, r, err, "event not found", "failed to create event")
 			return
 		}
 
@@ -59,7 +61,7 @@ func DeleteEvent(scope *usecase.WeddingScope, events *usecase.EventUsecase) http
 			return
 		}
 		if err := events.Delete(r.Context(), wedding, id); err != nil {
-			writeUsecaseError(w, err, "event not found", "failed to delete event")
+			writeUsecaseError(w, r, err, "event not found", "failed to delete event")
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})

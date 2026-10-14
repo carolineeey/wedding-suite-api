@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -29,7 +30,7 @@ func (r *WishRepository) List(ctx context.Context, weddingID string, includeUnap
 
 	rows, err := r.db.QueryContext(ctx, query, weddingID, limit)
 	if err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -37,11 +38,11 @@ func (r *WishRepository) List(ctx context.Context, weddingID string, includeUnap
 	for rows.Next() {
 		var wi models.Wish
 		if err := rows.Scan(&wi.ID, &wi.WeddingID, &wi.GuestName, &wi.Message, &wi.IsApproved, &wi.CreatedAt); err != nil {
-			return nil, err
+			return nil, errtrace.Wrap(err)
 		}
 		wishes = append(wishes, wi)
 	}
-	return wishes, rows.Err()
+	return wishes, errtrace.Wrap(rows.Err())
 }
 
 // Create inserts a wish and returns its generated ID.
@@ -52,7 +53,7 @@ func (r *WishRepository) Create(ctx context.Context, w models.Wish) (string, err
 		VALUES ($1, $2, $3, $4)
 		RETURNING id
 	`, w.WeddingID, w.GuestName, w.Message, w.IsApproved).Scan(&id)
-	return id, err
+	return id, errtrace.Wrap(err)
 }
 
 // SetApproval hides or shows a wish. The wedding_id predicate keeps the

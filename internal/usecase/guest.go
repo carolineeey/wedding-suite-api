@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/carolineeey/wedding-suite-api/internal/errtrace"
 	"github.com/carolineeey/wedding-suite-api/internal/models"
 )
 
@@ -73,7 +74,7 @@ func (u *GuestUsecase) Create(ctx context.Context, weddingID string, in GuestInp
 	}
 	for attempt := 0; attempt < inviteCodeAttempts; attempt++ {
 		if guest.InviteCode, err = u.newInviteCode(); err != nil {
-			return models.Guest{}, fmt.Errorf("generating invite code: %w", err)
+			return models.Guest{}, errtrace.Wrap(fmt.Errorf("generating invite code: %w", err))
 		}
 		guest.ID, err = u.guests.Create(ctx, guest)
 		if !errors.Is(err, models.ErrDuplicate) {

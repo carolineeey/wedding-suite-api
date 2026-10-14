@@ -29,6 +29,7 @@ type CreateEventInput struct {
 	VenueName string
 	Address   string
 	Notes     string
+	MapsURL   string // optional, http(s) only
 	SortOrder int
 }
 
@@ -39,6 +40,9 @@ func (u *EventUsecase) Create(ctx context.Context, weddingID string, in CreateEv
 	}
 	if in.Name == "" || in.StartsAt == "" {
 		return "", invalid("name and starts_at are required")
+	}
+	if in.MapsURL != "" && (tooLong(in.MapsURL, maxURLChars) || !isWebURL(in.MapsURL)) {
+		return "", invalid("maps_url must be an http(s) link, e.g. https://maps.app.goo.gl/...")
 	}
 	startsAt, err := time.Parse(time.RFC3339, in.StartsAt)
 	if err != nil {
@@ -51,6 +55,7 @@ func (u *EventUsecase) Create(ctx context.Context, weddingID string, in CreateEv
 		VenueName: in.VenueName,
 		Address:   in.Address,
 		Notes:     in.Notes,
+		MapsURL:   in.MapsURL,
 		SortOrder: in.SortOrder,
 	}
 	if in.EndsAt != "" {

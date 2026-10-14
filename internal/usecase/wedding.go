@@ -54,6 +54,11 @@ type WeddingInput struct {
 	PartnerOneName string
 	PartnerTwoName string
 	WeddingDate    string // YYYY-MM-DD, optional
+	// Invitation page content, all optional. Update replaces them like every
+	// other field, so an omitted one is cleared.
+	OpeningText string
+	Story       string
+	DressCode   string
 }
 
 // validate normalizes the slug and checks every field, returning the wedding
@@ -69,10 +74,22 @@ func (in WeddingInput) validate() (models.Wedding, error) {
 	if !slugPattern.MatchString(slug) {
 		return models.Wedding{}, invalid("slug must contain only lowercase letters, numbers, and single hyphens between them")
 	}
+	if tooLong(in.OpeningText, maxOpeningChars) {
+		return models.Wedding{}, invalid("opening_text must be at most %d characters", maxOpeningChars)
+	}
+	if tooLong(in.Story, maxStoryChars) {
+		return models.Wedding{}, invalid("story must be at most %d characters", maxStoryChars)
+	}
+	if tooLong(in.DressCode, maxShortTextChars) {
+		return models.Wedding{}, invalid("dress_code must be at most %d characters", maxShortTextChars)
+	}
 	wedding := models.Wedding{
 		Slug:           slug,
 		PartnerOneName: in.PartnerOneName,
 		PartnerTwoName: in.PartnerTwoName,
+		OpeningText:    in.OpeningText,
+		Story:          in.Story,
+		DressCode:      in.DressCode,
 	}
 	if in.WeddingDate != "" {
 		if _, err := time.Parse("2006-01-02", in.WeddingDate); err != nil {
